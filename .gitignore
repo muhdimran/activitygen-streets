@@ -1,1 +1,4 @@
 network-files/
+venv/
+output/
+__pycache__/
