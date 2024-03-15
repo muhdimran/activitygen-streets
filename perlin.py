@@ -25,13 +25,13 @@ class NoiseSampler:
 
     def __init__(
         self,
-        centre: Tuple[float, float],
+        centres: List[Tuple[float, float]],
         centre_weight: float,
         radius: float,
         offset: float,
         octaves: int = 3,
     ):
-        self._centre = centre
+        self._centres = centres
         self._centre_weight = centre_weight
         self._radius = radius
         self._offset = offset
@@ -39,7 +39,7 @@ class NoiseSampler:
 
     def sample(self, pos: Tuple[float, float]) -> float:
         """
-        Samples the noise at the given position
+        Samples the noise at the given position, considering multiple centers.
         :param pos: the position to sample at
         :return: a float in the range [0,1)
         """
@@ -50,8 +50,17 @@ class NoiseSampler:
             )
             + 1
         ) / 2
-        gradient = 1 - (distance(pos, self._centre) / self._radius)
-        return (smoothstep(noise01) + gradient * self._centre_weight) / (
+
+        # Calculate total influence from all centers
+        total_gradient = 0
+        for center in self._centres:
+            distance_to_center = distance(pos, center)
+            # Normalize distance for consistent influence across centers
+            gradient = 1 - (distance_to_center / max(self._radius, distance_to_center))
+            total_gradient += gradient * self._centre_weight
+
+        # Combine noise and gradient with center weight
+        return (smoothstep(noise01) + total_gradient * self._centre_weight) / (
             1 + self._centre_weight
         )
 

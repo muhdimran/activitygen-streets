@@ -1,6 +1,6 @@
 """
 Usage:
-    generateStreets.py --net-file=FILE --output-file=FILE [--centre.pop-weight=F] [--centre.work-weight=F]
+    generateStreets.py --net-file=FILE --output-file=FILE [--centre.pop-weight=F] [--centre.work-weight=F] [--hotspots=HOTSPOTS]
 
 Input Options:
     -n, --net-file FILE     Input road network to create streets from
@@ -12,6 +12,7 @@ Output Options:
 Other Options:
     --centre.pop-weight=F       The increase in population near the city center. [default: 0.5]
     --centre.work-weight=F      The increase in work places near the city center. [default: 0.1]
+    --hotspots=HOTSPOTS         The coordinates of the hotspots in the city. Format: "x1,y1;x2,y2;...;xn,yn" 
 """
 
 import os
@@ -48,11 +49,17 @@ def main():
     centre = find_city_centre(net)
     radius = radius_of_network(net, centre)
 
+    if args["--hotspots"]:
+        hotspots = args["--hotspots"].split(";")
+        hotspots = [tuple(map(float, x.split(","))) for x in hotspots]
+    else:
+        hotspots = [centre]
+
     pop_noise = NoiseSampler(
-        centre, float(args["--centre.pop-weight"]), radius, pop_offset
+        hotspots, float(args["--centre.pop-weight"]), radius, pop_offset
     )
     work_noise = NoiseSampler(
-        centre, float(args["--centre.work-weight"]), radius, work_offset
+        hotspots, float(args["--centre.work-weight"]), radius, work_offset
     )
 
     root = ET.Element("city")
